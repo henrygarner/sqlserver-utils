@@ -1,0 +1,18 @@
+TYPE_MAP = { 'int' => 'integer', 'varchar' => 'string', 'nvarchar' => 'float', 'float' => 'float', 'smalldatetime' => 'datetime', 'datetime' => 'datetime', 'text' => 'text', 'numeric' => 'decimal' }
+
+task :create_migration_from_sql_script, :script_file do |t, args|
+  File.open args.script_file, 'r' do |sql|
+    File.open 'output_migration.rb', 'w' do |out|
+      while line = sql.gets
+        case line
+        when /create table \[(.*)\]\(/i
+          out.puts "create_table :#{$1.downcase} do |t|"
+        when /\[(.*)\] \[(.*)\](\(.*\))?( NULL)?/i
+          out.puts "  t.#{TYPE_MAP[$2]} :#{$1.downcase}"
+        when /^\)/
+          out.puts 'end'
+		end
+      end
+    end
+  end
+end
